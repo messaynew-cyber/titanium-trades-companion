@@ -12,17 +12,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.titanium.trades.data.PriceApi
 import com.titanium.trades.data.TradeRepository
-import com.titanium.trades.ui.screens.DashboardScreen
-import com.titanium.trades.ui.screens.SettingsScreen
+import com.titanium.trades.enginevm.CockpitViewModel
+import com.titanium.trades.ui.cockpit.CockpitScaffold
 import com.titanium.trades.ui.theme.OledBlack
 import com.titanium.trades.ui.theme.TitaniumTheme
 
 /** Convenience factory so the ViewModel only needs its dependencies, not the context. */
+/** Default factory for the engine cockpit viewModel (has default ctor params otherwise not creatable). */
+object CockpitVmFactory : androidx.lifecycle.ViewModelProvider.NewInstanceFactory() {
+    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+        @Suppress("UNCHECKED_CAST")
+        return com.titanium.trades.enginevm.CockpitViewModel() as T
+    }
+}
+
 class MainViewModelFactory(private val repo: TradeRepository) :
     androidx.lifecycle.ViewModelProvider.Factory {
     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
@@ -36,6 +41,7 @@ class MainActivity : ComponentActivity() {
     private val repo by lazy { TradeRepository(applicationContext) }
     private val vmFactory by lazy { MainViewModelFactory(repo) }
     private val viewModel: MainViewModel by viewModels { vmFactory }
+    private val cockpitViewModel: CockpitViewModel by viewModels { CockpitVmFactory }
 
     // Request notification permission on Android 13+ so background price alerts show.
     private val notifPermissionLauncher =
@@ -47,7 +53,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             TitaniumTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = OledBlack) {
-                    TradesApp(viewModel)
+                    TitaniumEntry(manualVm = viewModel, cockpitVm = cockpitViewModel)
                 }
             }
         }
@@ -61,20 +67,12 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun TradesApp(viewModel: MainViewModel) {
-    val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "dashboard") {
-        composable("dashboard") {
-            DashboardScreen(
-                viewModel = viewModel,
-                onOpenSettings = { navController.navigate("settings") }
-            )
-        }
-        composable("settings") {
-            SettingsScreen(
-                viewModel = viewModel,
-                onBack = { navController.popBackStack() }
-            )
-        }
-    }
+private fun TitaniumEntry(
+    manualVm: MainViewModel,
+    cockpitVm: CockpitViewModel
+) {
+    CockpitScaffold(
+        manualVm = manualVm,
+        cockpitVm = cockpitVm
+    )
 }

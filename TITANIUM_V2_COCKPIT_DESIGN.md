@@ -45,3 +45,17 @@ P3 alerts + adaptive icon (glass cockpit logo) + CI + install + iterate.
 - DECISION: We DO NOT add any nginx pass-through. The public nginx that serves these files is
   ADWA-frontend (container adwa_frontend) = READ-ONLY infra. Per-symbol data ALREADY reachable via
   signal_history + trade_history in the existing public status JSON. So zero server changes at all.
+
+## v2 INFORMATION ARCHITECTURE (chosen): bottom-nav, 3 tabs, engine-first
+App hosts a compact NavHost. Start = COCKPIT.
+ 1 COCKPIT (flagship): engine header (PAPER/equity/cash/service/last-cycle) + PER-SYMBOL
+   WATCHLIST cards built from statistics.signal_history (last signal per symbol BTC/ETH/SOL):
+   each card = symbol + regime chip(BULL/BEAR/CHOP themed) + action + quality + hmm-ish + ts.
+   Current watched-symbol HMM PositionRing + open_trade live mark-to-market + today P/L +
+   win_rate chip + equity-curve sparkline (downsampled in VM to 240).
+ 2 TRADES: scroll trade_history (open first) + signal feed list.
+ 3 POSITION: v1-style manual SL/TP SELL? no — manual TradeConfig for watch/alert (retained feature),
+   alerts toggle.
+ViewModels: CockpitViewModel (EngineApi) polls cockpit every 20s + refresh on tab focus.
+Keeps v1 SL/TP alerts. New files under ui/cockpit/. v1 DashboardScreen retired (replaced by cockpit
+home); SettingsScreen content migrates into POSITION tab shell (reuse its card/field atoms).
