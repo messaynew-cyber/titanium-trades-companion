@@ -16,15 +16,15 @@ import com.titanium.trades.data.PriceApi
 import com.titanium.trades.data.TradeRepository
 import com.titanium.trades.enginevm.CockpitViewModel
 import com.titanium.trades.ui.cockpit.CockpitScaffold
-import com.titanium.trades.ui.theme.OledBlack
+import com.titanium.trades.ui.theme.IsDark
 import com.titanium.trades.ui.theme.TitaniumTheme
+import com.titanium.trades.ui.theme.bgDeep
 
-/** Convenience factory so the ViewModel only needs its dependencies, not the context. */
-/** Default factory for the engine cockpit viewModel (has default ctor params otherwise not creatable). */
+/** New-instance factory for the engine cockpit viewModel (defaults otherwise not creatable). */
 object CockpitVmFactory : androidx.lifecycle.ViewModelProvider.NewInstanceFactory() {
     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
         @Suppress("UNCHECKED_CAST")
-        return com.titanium.trades.enginevm.CockpitViewModel() as T
+        return CockpitViewModel() as T
     }
 }
 
@@ -51,9 +51,22 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         maybeRequestNotificationPermission()
         setContent {
-            TitaniumTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = OledBlack) {
-                    TitaniumEntry(manualVm = viewModel, cockpitVm = cockpitViewModel)
+            // IsDark (ui.theme) is the single source of truth for light/dark.
+            // Reading it here exposes the current mode; the Scaffold's sun/moon
+            // toggle flips IsDark and recomposition re-skins every screen via the
+            // computed palette vals in Color.kt (no per-screen edits required).
+            val dark = IsDark
+            TitaniumTheme(darkTheme = dark) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = bgDeep
+                ) {
+                    TitaniumEntry(
+                        manualVm = viewModel,
+                        cockpitVm = cockpitViewModel,
+                        darkTheme = dark,
+                        onToggleTheme = { IsDark = !IsDark }
+                    )
                 }
             }
         }
@@ -69,10 +82,14 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun TitaniumEntry(
     manualVm: MainViewModel,
-    cockpitVm: CockpitViewModel
+    cockpitVm: CockpitViewModel,
+    darkTheme: Boolean,
+    onToggleTheme: () -> Unit
 ) {
     CockpitScaffold(
         manualVm = manualVm,
-        cockpitVm = cockpitVm
+        cockpitVm = cockpitVm,
+        darkTheme = darkTheme,
+        onToggleTheme = onToggleTheme
     )
 }

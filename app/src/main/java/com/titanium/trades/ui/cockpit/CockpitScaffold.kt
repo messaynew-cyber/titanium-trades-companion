@@ -39,7 +39,9 @@ private enum class Tab(val label: String, val icon: ImageVector) {
 @Composable
 fun CockpitScaffold(
     manualVm: MainViewModel,
-    cockpitVm: CockpitViewModel
+    cockpitVm: CockpitViewModel,
+    darkTheme: Boolean,
+    onToggleTheme: () -> Unit
 ) {
     var tab by rememberSaveable { mutableStateOf(Tab.Cockpit.name) }
     val selected = Tab.valueOf(tab)
@@ -63,7 +65,7 @@ fun CockpitScaffold(
     ) { pad ->
         androidx.compose.foundation.layout.Box(Modifier.padding(pad)) {
             when (selected) {
-                Tab.Cockpit -> CockpitHomeScreen(viewModel = cockpitVm)
+                Tab.Cockpit -> CockpitHomeScreen(viewModel = cockpitVm, darkTheme = darkTheme, onToggleTheme = onToggleTheme)
                 Tab.Journal -> JournalScreen(vm = cockpitVm)
                 Tab.Position -> SettingsScreen(viewModel = manualVm, onBack = {})
             }

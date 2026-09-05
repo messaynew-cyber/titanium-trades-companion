@@ -22,6 +22,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Autorenew
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.TrendingUp
@@ -62,7 +64,11 @@ import com.titanium.trades.ui.theme.TextMid
 
 /** Flagship screen: the live engine cockpit. */
 @Composable
-fun CockpitHomeScreen(viewModel: CockpitViewModel) {
+fun CockpitHomeScreen(
+    viewModel: CockpitViewModel,
+    darkTheme: Boolean,
+    onToggleTheme: () -> Unit,
+) {
     val state by viewModel.state.collectAsState()
     val snap = state.snapshot
     val status = snap?.status
@@ -74,7 +80,8 @@ fun CockpitHomeScreen(viewModel: CockpitViewModel) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // ── status hero header
-        item { EngineHeader(status = status, loading = state.loading && !state.loaded, error = state.error, vm = viewModel) }
+        item { EngineHeader(status = status, loading = state.loading && !state.loaded, error = state.error, vm = viewModel,
+            darkTheme = darkTheme, onToggleTheme = onToggleTheme) }
 
         if (state.error != null && status == null) {
             item {
@@ -127,7 +134,7 @@ internal fun SectionLabel(title: String, sub: String = "") {
 
 // ─────────────────────────── ENGINE HEADER ───────────────────────────
 @Composable
-private fun EngineHeader(status: com.titanium.trades.data.model.EngineStatus?, loading: Boolean, error: String?, vm: CockpitViewModel) {
+private fun EngineHeader(status: com.titanium.trades.data.model.EngineStatus?, loading: Boolean, error: String?, vm: CockpitViewModel, darkTheme: Boolean, onToggleTheme: () -> Unit) {
     val ok = status != null
     Card(
         shape = RoundedCornerShape(20.dp),
@@ -147,9 +154,17 @@ private fun EngineHeader(status: com.titanium.trades.data.model.EngineStatus?, l
                     // PAPER / LIVE badge
                     if (status?.paper == true) PillChip("PAPER", Gold.copy(alpha = 0.16f), Gold)
                     else if (ok) PillChip("LIVE", GreenUp.copy(alpha = 0.16f), GreenUp)
-                    Spacer(Modifier.width(6.dp))
                     IconButton(onClick = { vm.refresh() }, modifier = Modifier.size(28.dp)) {
                         Icon(Icons.Filled.Autorenew, null, tint = TextMid, modifier = Modifier.size(18.dp))
+                    }
+                    Spacer(Modifier.width(2.dp))
+                    IconButton(onClick = onToggleTheme, modifier = Modifier.size(28.dp)) {
+                        Icon(
+                            if (darkTheme) Icons.Filled.LightMode else Icons.Filled.DarkMode,
+                            contentDescription = "Toggle theme",
+                            tint = Gold,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
                 }
                 Spacer(Modifier.height(14.dp))
