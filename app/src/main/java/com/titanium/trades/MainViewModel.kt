@@ -75,6 +75,7 @@ class MainViewModel(
     fun setStopLoss(v: Double?) = repo.setStopLoss(v)
     fun setTakeProfit(v: Double?) = repo.setTakeProfit(v)
     fun setEntryPrice(v: Double?) = repo.setEntryPrice(v)
+    fun setQuantity(v: Double?) = repo.setQuantity(v)
     fun setAlertEnabled(b: Boolean) = repo.setAlertsEnabled(b)
 
     companion object {

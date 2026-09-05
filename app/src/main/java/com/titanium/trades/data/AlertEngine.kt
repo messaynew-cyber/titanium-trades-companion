@@ -38,20 +38,20 @@ object AlertEngine {
     fun evaluate(price: PriceSnapshot, cfg: TradeConfig): AlertEvent? {
         if (!cfg.alertsEnabled) return null
         val usd = price.usd
-        when (signal(usd, cfg)) {
+        return when (signal(usd, cfg)) {
             TradeSignal.BELOW_SL -> {
                 val sl = cfg.stopLoss ?: return null
-                return AlertEvent(
-                    "STOP-LOSS HIT", 
-                    "${price.symbol} at $${"%.2f".format(usd)} crossed SL $${"%.2f".format(sl)}. Not exit immediately.",
+                AlertEvent(
+                    "STOP-LOSS HIT",
+                    price.symbol + " at $" + String.format("%.2f", usd) + " crossed SL $" + String.format("%.2f", sl),
                     Severity.CRITICAL
                 )
             }
             TradeSignal.AT_TP -> {
                 val tp = cfg.takeProfit ?: return null
-                return AlertEvent(
-                    "TAKE-PROFIT REACHED 🎯",
-                    "${price.symbol} hit $${"%.2f".format(usd)}. TP $${"%.2f".format(tp)} reached. Consider locking gains.",
+                AlertEvent(
+                    "TAKE-PROFIT REACHED \uD83C\uDFAF",
+                    price.symbol + " hit $" + String.format("%.2f", usd) + ". TP $" + String.format("%.2f", tp) + " reached. Consider locking gains.",
                     Severity.SUCCESS
                 )
             }
@@ -60,13 +60,12 @@ object AlertEngine {
                 val tp = cfg.takeProfit ?: return null
                 val pct = (usd - tp * 0.85) / (tp * 0.15)
                 if (pct > 0 && usd >= tp * 0.85) {
-                    return AlertEvent(
+                    AlertEvent(
                         "Near Target",
-                        "${price.symbol} at $${"%.2f".format(usd)} is within 15% of TP $${"%.2f".format(tp)}.",
+                        price.symbol + " at $" + String.format("%.2f", usd) + " is within 15% of TP $" + String.format("%.2f", tp),
                         Severity.WARNING
                     )
-                }
-                null
+                } else null
             }
             else -> null
         }

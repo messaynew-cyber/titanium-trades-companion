@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -168,10 +169,18 @@ private fun PositionCard(cfg: TradeConfig, currentPrice: Double?) {
             }
             Spacer(Modifier.height(16.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                LevelBox("STOP-LOSS", cfg.stopLoss,
-                    price != null && cfg.stopLoss != null && price <= cfg.stopLoss)
-                LevelBox("TAKE-PROFIT", cfg.takeProfit,
-                    price != null && cfg.takeProfit != null && price >= cfg.takeProfit)
+                LevelBox(
+                    modifier = Modifier.weight(1f),
+                    label = "STOP-LOSS",
+                    value = cfg.stopLoss,
+                    triggered = price != null && cfg.stopLoss != null && price <= cfg.stopLoss
+                )
+                LevelBox(
+                    modifier = Modifier.weight(1f),
+                    label = "TAKE-PROFIT",
+                    value = cfg.takeProfit,
+                    triggered = price != null && cfg.takeProfit != null && price >= cfg.takeProfit
+                )
             }
             if (price == null && (cfg.stopLoss == null || cfg.takeProfit == null)) {
                 Spacer(Modifier.height(14.dp))
@@ -201,10 +210,14 @@ private fun BoxPill(color: Color, text: String) {
 }
 
 @Composable
-private fun LevelBox(label: String, value: Double?, triggered: Boolean) {
+private fun LevelBox(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: Double?,
+    triggered: Boolean
+) {
     Column(
-        modifier = Modifier
-            .weight(1f)
+        modifier = modifier
             .background(CardBlack, RoundedCornerShape(12.dp))
             .padding(14.dp)
     ) {
