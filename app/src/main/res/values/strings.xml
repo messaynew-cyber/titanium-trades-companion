@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Titanium Trades</string>
+    <string name="notification_channel_price">Price Alerts</string>
+    <string name="notification_channel_alerts">Trade Alerts</string>
+</resources>
