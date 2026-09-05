@@ -62,6 +62,7 @@ import com.titanium.trades.MainViewModel
 import com.titanium.trades.data.AlertEngine
 import com.titanium.trades.data.model.TradeConfig
 import com.titanium.trades.data.model.TradeSignal
+import com.titanium.trades.ui.components.PositionRing
 import com.titanium.trades.ui.components.PriceSparkline
 import com.titanium.trades.ui.theme.AmbientBg
 import com.titanium.trades.ui.theme.Gold
@@ -108,7 +109,6 @@ fun DashboardScreen(viewModel: MainViewModel, onOpenSettings: () -> Unit) {
                 item { SparklineCard(history = ui.history, currentPrice = priceUsd) }
             }
             item { AlertsBanner(armed = cfg.stopLoss != null || cfg.takeProfit != null, onOpenSettings = onOpenSettings) }
-            Spacer(Modifier.height(6.dp))
         }
     }
 }

@@ -50,7 +50,7 @@ fun PriceSparkline(
 
         fun norm(idx: Int): Pair<Float, Float> {
             val x = if (width <= 0f) 0f else idx / (prices.size - 1f) * width
-            val raw = (prices[idx] - minP) / range
+            val raw = ((prices[idx] - minP) / range).toFloat()
             // flip + add vertical breathing room
             val y = height - (raw * (height - 12f)) - 6f
             return x to y
