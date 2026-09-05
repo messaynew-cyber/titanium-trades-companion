@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- The live engine feed is plain-HTTP on the Oracle VPS (no TLS listener).
+         Allow cleartext ONLY to this read-only host; everything else enforces HTTPS. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">129.80.112.9</domain>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

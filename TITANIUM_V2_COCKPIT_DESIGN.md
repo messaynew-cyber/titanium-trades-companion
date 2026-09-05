@@ -36,3 +36,12 @@ habesha.html dashboard untouched. VPS = read-only for this project (Adwa infra i
 P1 decoder+fetcher (Kotlin/OkHttp, model classes match contract exactly, unit-test parse)
 P2 Compose cockpit UI (biggest)
 P3 alerts + adaptive icon (glass cockpit logo) + CI + install + iterate.
+
+## CONFIRMED (2026-09-05 live read) — the ONE public status JSON is enough. NO server changes.
+- statistics also contains: signal_history[30] = {id,ts,symbol,regime,score,quality,action,price}
+  (multi-symbol per-signal feed: BTCUSD/ETHUSD/SOLUSD each with regime+action+quality+price),
+  win_loss = {wins,losses,flat,win_rate}, trade_history[100] multi-symbol w/ regime+quality+pnl.
+- regime block = current watched symbol view (BULL now, score .84, rsi, hmm_prob .97, atr, last_price).
+- DECISION: We DO NOT add any nginx pass-through. The public nginx that serves these files is
+  ADWA-frontend (container adwa_frontend) = READ-ONLY infra. Per-symbol data ALREADY reachable via
+  signal_history + trade_history in the existing public status JSON. So zero server changes at all.
