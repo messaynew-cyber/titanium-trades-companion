@@ -61,6 +61,7 @@ import com.titanium.trades.ui.theme.surface2
 import com.titanium.trades.ui.theme.surface3
 import com.titanium.trades.ui.theme.TextDim
 import com.titanium.trades.ui.theme.TextHigh
+import com.titanium.trades.ui.theme.TextOnGold
 import com.titanium.trades.ui.theme.TextMid
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.mutableIntStateOf
