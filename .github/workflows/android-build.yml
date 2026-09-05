@@ -5,11 +5,10 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch:
+  workflow_dispatch:      # allow manual trigger from Actions tab
 
 permissions:
   contents: read
-  actions: write
 
 jobs:
   build:
@@ -27,37 +26,14 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      # Gradle's real output goes to a log file AND is captured as artifact on failure,
-      # so Kotlin/test errors are always visible from the Companion side.
-      - name: Unit tests
-        run: |
-          ./gradlew testDebugUnitTest --stacktrace > /tmp/gradle.log 2>&1 || { echo "TESTS EXIT $?"; tail -n 80 /tmp/gradle.log; exit 1; }
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest --stacktrace
 
       - name: Build debug APK
-        run: |
-          ./gradlew :app:assembleDebug --stacktrace > /tmp/gradle.log 2>&1 || { echo "BUILD EXIT $?"; tail -n 120 /tmp/gradle.log; exit 1; }
-
-      - name: Fail: emit Kotlin errors
-        if: failure()
-        run: |
-          echo "===== KOTLIN e: LINES ====="
-          grep -hE "^\s*e:\s" /tmp/gradle.log || true
-          echo "===== WHAT WENT WRONG ====="
-          grep -hA5 "What went wrong" /tmp/gradle.log || true
-          mkdir -p build-log-art
-          cp /tmp/gradle.log build-log-art/build.log || true
-          exit 1
+        run: ./gradlew :app:assembleDebug --stacktrace
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v5
         with:
           name: titanium-trades-debug
           path: app/build/outputs/apk/debug/app-debug.apk
-        if: success()
-
-      - name: Upload build log
-        uses: actions/upload-artifact@v5
-        if: failure()
-        with:
-          name: build-log
-          path: build-log-art

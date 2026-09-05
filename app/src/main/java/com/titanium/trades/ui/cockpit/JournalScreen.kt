@@ -2,6 +2,7 @@ package com.titanium.trades.ui.cockpit
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -87,6 +88,7 @@ private fun PostureBlock(label: String, value: String, fg: Color) {
     }
 }
 
+@Composable
 private fun PostureBlock(label: String, v: Int, fg: Color) = PostureBlock(label, v.toString(), fg)
 
 @Composable

@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -169,7 +171,7 @@ private fun EngineHeader(status: com.titanium.trades.data.model.EngineStatus?, l
                             fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
                         Spacer(Modifier.height(6.dp))
                         status?.let {
-                            Text("${it.symbolPrefix} · cycle ${it.loopSeconds}s · updated ${shortAgo(it.updated)}",
+                            Text("${it.symbolPrefix()} · cycle ${it.loopSeconds}s · updated ${shortAgo(it.updated)}",
                                 color = TextDim, style = MaterialTheme.typography.labelSmall)
                         }
                     }
