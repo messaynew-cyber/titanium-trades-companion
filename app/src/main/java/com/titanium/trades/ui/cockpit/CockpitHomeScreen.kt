@@ -64,6 +64,7 @@ import com.titanium.trades.ui.theme.TextHigh
 import com.titanium.trades.ui.theme.TextMid
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.titanium.trades.ui.components.TradingViewChart
