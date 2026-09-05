@@ -40,6 +40,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -61,6 +62,12 @@ import com.titanium.trades.ui.theme.surface3
 import com.titanium.trades.ui.theme.TextDim
 import com.titanium.trades.ui.theme.TextHigh
 import com.titanium.trades.ui.theme.TextMid
+import androidx.compose.foundation.clickable
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import com.titanium.trades.ui.components.TradingViewChart
+import com.titanium.trades.ui.theme.outline1
 
 /** Flagship screen: the live engine cockpit. */
 @Composable
@@ -73,6 +80,8 @@ fun CockpitHomeScreen(
     val snap = state.snapshot
     val status = snap?.status
     val stat = status?.statistics
+    // Chart interval for the live candlestick feed (1h default; D / W to zoom out)
+    var chartIv by rememberSaveable { mutableStateOf("60") }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(AmbientBg),
@@ -97,6 +106,10 @@ fun CockpitHomeScreen(
                 item { SectionLabel("MARKET REGIME", "per-symbol engine signal feed") }
                 item { WatchlistRow(watch = watch) }
             }
+            // ── live candles from TradingView for the watched symbol
+            item {
+                LiveChartCard(symbol = status.symbol ?: "SOLUSD", lastPrice = status.regimeBlock?.lastPrice, interval = chartIv, onInterval = { chartIv = it })
+            }
             // ── open position + today stat
             item { PositionPulse(status = status) }
             // ── signals strip
@@ -110,6 +123,66 @@ fun CockpitHomeScreen(
             }
         }
         item { Spacer(Modifier.height(2.dp)) }
+    }
+}
+
+// ─────────────────── LIVE CHART (TradingView) ───────────────────
+private val ChartIntervals = listOf("5" to "5m", "15" to "15m", "60" to "1H", "240" to "4H", "D" to "1D", "W" to "1W")
+
+private val _fmt2 = java.text.DecimalFormat("#,##0.00")
+
+@Composable
+private fun LiveChartCard(
+    symbol: String,
+    lastPrice: Double?,
+    interval: String,
+    onInterval: (String) -> Unit
+) {
+    Column {
+        SectionLabel("LIVE CHART", symbol)
+        Spacer(Modifier.height(8.dp))
+        // header: symbol price + regime dot + swap-safe interval pills
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                symbol,
+                color = TextHigh, style = MaterialTheme.typography.titleMedium,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+            )
+            lastPrice?.let { p ->
+                Text(
+                    "  ${_fmt2.format(p)}",
+                    color = Gold, style = MaterialTheme.typography.titleMedium,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                )
+            }
+            Spacer(Modifier.weight(1f))
+        }
+        Spacer(Modifier.height(8.dp))
+        // interval chips (5m -> 1W)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            ChartIntervals.forEach { (v, lbl) ->
+                val act = interval == v
+                Text(
+                    lbl,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(7.dp))
+                        .background(if (act) Gold else surface2)
+                        .clickable { onInterval(v) }
+                        .padding(horizontal = 9.dp, vertical = 5.dp),
+                    color = if (act) TextOnGold else TextMid,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontSize = 12.sp
+                )
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        // the candlestick web view inside a rounded tombstone
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = surface2.copy(alpha = 0.97f))
+        ) {
+            TradingViewChart(symbol = symbol, interval = interval)
+        }
     }
 }
 
