@@ -30,20 +30,24 @@ class MainViewModel(
         val price: PriceSnapshot? = null,
         val loading: Boolean = true,
         val error: String? = null,
-        val lastUpdated: Long? = null
+        val lastUpdated: Long? = null,
+        val history: List<Double> = emptyList()
     )
 
     private val _manualPrice = MutableStateFlow<PriceSnapshot?>(null)
+    private val _history = MutableStateFlow<List<Double>>(emptyList())
 
     val uiState: StateFlow<UiState> = combine(
         repo.tradeConfig,
-        _manualPrice
-    ) { cfg, manual ->
+        _manualPrice,
+        _history
+    ) { cfg, manual, history ->
         UiState(
             config = cfg,
             price = manual,
             loading = manual == null,
-            lastUpdated = manual?.timestamp
+            lastUpdated = manual?.timestamp,
+            history = history
         )
     }.stateIn(
         scope = viewModelScope,
@@ -66,10 +70,14 @@ class MainViewModel(
         }
     }
 
-    /** Fetch a fresh price snapshot and cache it. */
+    /** Fetch a fresh price snapshot, cache it, and append to the history buffer. */
     suspend fun refreshPrice(): PriceSnapshot? {
         return withContext(Dispatchers.IO) { priceApi.fetchSolPrice() }
-            ?.also { snapshot -> repo.cachePrice(snapshot.usd) }
+            ?.also { snapshot ->
+                repo.cachePrice(snapshot.usd)
+                _history.value = (_history.value + snapshot.usd)
+                    .takeLast(MAX_HISTORY_POINTS)   // keep a rolling window
+            }
     }
 
     fun setStopLoss(v: Double?) = repo.setStopLoss(v)
@@ -80,5 +88,6 @@ class MainViewModel(
 
     companion object {
         private const val REFRESH_INTERVAL_MS = 30_000L
+        private const val MAX_HISTORY_POINTS = 30
     }
 }

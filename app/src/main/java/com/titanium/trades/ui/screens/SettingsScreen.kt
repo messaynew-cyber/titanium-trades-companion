@@ -1,5 +1,6 @@
 package com.titanium.trades.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,13 +11,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,8 +30,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -37,124 +45,134 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.titanium.trades.MainViewModel
 import com.titanium.trades.ui.theme.Gold
+import com.titanium.trades.ui.theme.GoldHorizontal
 import com.titanium.trades.ui.theme.OledBlack
-import com.titanium.trades.ui.theme.SurfaceElevated
-import com.titanium.trades.ui.theme.TextSecondary
+import com.titanium.trades.ui.theme.TextDim
+import com.titanium.trades.ui.theme.TextHigh
+import com.titanium.trades.ui.theme.TextMid
+import com.titanium.trades.ui.theme.outline1
+import com.titanium.trades.ui.theme.surface1
+import com.titanium.trades.ui.theme.surface2
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(viewModel: MainViewModel, onBack: () -> Unit) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val cfg = uiState.config
+    val ui by viewModel.uiState.collectAsStateWithLifecycle()
+    val cfg = ui.config
 
-    // Local editable state (strings for user typing)
     var entryText by remember(cfg.entryPrice) { mutableStateOf(cfg.entryPrice?.toString() ?: "") }
     var slText by remember(cfg.stopLoss) { mutableStateOf(cfg.stopLoss?.toString() ?: "") }
     var tpText by remember(cfg.takeProfit) { mutableStateOf(cfg.takeProfit?.toString() ?: "") }
     var qtyText by remember(cfg.quantity) { mutableStateOf(cfg.quantity?.toString() ?: "") }
-    var alertsEnabled by remember(cfg.alertsEnabled) { mutableStateOf(cfg.alertsEnabled) }
+    var alerts by remember(cfg.alertsEnabled) { mutableStateOf(cfg.alertsEnabled) }
 
     Scaffold(
         containerColor = OledBlack,
         topBar = {
             TopAppBar(
-                title = { Text("Position Settings", color = MaterialTheme.colorScheme.onSurface) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSurface)
+                title = {
+                    Column {
+                        Text("Position", color = TextHigh, fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium)
+                        Text("Configure your active trade", color = TextDim,
+                            style = MaterialTheme.typography.labelSmall)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = OledBlack,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextHigh)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = OledBlack)
             )
         }
-    ) { padding ->
+    ) { pad ->
         Column(
-            modifier = Modifier
+            Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(pad)
                 .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Text("Configure your active SOL trade. Alerts arm when both SL + TP are set.",
-                color = TextSecondary, style = MaterialTheme.typography.bodySmall)
-
+            // Section header: levels
+            SectionLabel("PRICE LEVELS", "Set the entry and the protection levels")
             MoneyField("Entry price (USD)", entryText, { entryText = it })
             MoneyField("Stop-loss (USD)", slText, { slText = it })
             MoneyField("Take-profit (USD)", tpText, { tpText = it })
-            MoneyField("Quantity (SOL)  ·  optional", qtyText, { qtyText = it })
+            MoneyField("Quantity (SOL) · optional", qtyText, { qtyText = it })
 
-            // Alerts toggle
-            Card(shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SurfaceElevated)) {
-                Row(Modifier.fillMaxWidth().padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
+            // Alerts toggle card
+            Card(shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = surface1),
+                border = BorderStroke(1.dp, outline1)) {
+                Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("Push Alerts", style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface)
-                        Spacer(Modifier.height(2.dp))
-                        Text("Notify when SL/TP is hit even if app is closed.",
-                            color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                        Text("Push Alerts", style = MaterialTheme.typography.titleSmall,
+                            color = TextHigh, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.height(3.dp))
+                        Text("Notify on SL/TP even when the app is closed.",
+                            color = TextDim, style = MaterialTheme.typography.bodySmall)
                     }
                     Switch(
-                        checked = alertsEnabled,
-                        onCheckedChange = { alertsEnabled = it }
+                        checked = alerts,
+                        onCheckedChange = { alerts = it },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = OledBlack,
+                            checkedTrackColor = Gold,
+                            checkedBorderColor = Gold
+                        )
                     )
                 }
             }
 
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(2.dp))
 
-            // Save + defaults
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                TextButton(onClick = {
-                    entryText = ""; slText = ""; tpText = ""; qtyText = ""
-                }, modifier = Modifier.weight(1f)) {
-                    Text("Clear")
-                }
-                androidx.compose.material3.Button(
-                    onClick = {
-                        viewModel.setEntryPrice(entryText.toDoubleOrNull())
-                        viewModel.setStopLoss(slText.toDoubleOrNull())
-                        viewModel.setTakeProfit(tpText.toDoubleOrNull())
-                        viewModel.setQuantity(qtyText.toDoubleOrNull())
-                        viewModel.setAlertEnabled(alertsEnabled)
-                        onBack()
-                    },
-                    modifier = Modifier.weight(2f),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Save Position")
-                }
+            // Buttons
+            Button(
+                onClick = {
+                    viewModel.setEntryPrice(entryText.toDoubleOrNull())
+                    viewModel.setStopLoss(slText.toDoubleOrNull())
+                    viewModel.setTakeProfit(tpText.toDoubleOrNull())
+                    viewModel.setQuantity(qtyText.toDoubleOrNull())
+                    viewModel.setAlertEnabled(alerts)
+                    onBack()
+                },
+                modifier = Modifier.fillMaxWidth().height(54.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = OledBlack)
+            ) {
+                Text("SAVE POSITION", style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            }
+            TextButton(onClick = {
+                entryText = ""; slText = ""; tpText = ""; qtyText = ""
+                viewModel.setEntryPrice(null); viewModel.setStopLoss(null)
+                viewModel.setTakeProfit(null); viewModel.setQuantity(null)
+            }, modifier = Modifier.fillMaxWidth()) {
+                Text("Clear all levels", color = TextDim)
             }
 
-            Spacer(Modifier.height(8.dp))
-            Card(shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SurfaceElevated)) {
-                Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                    Text("Current levels", color = Gold,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                    Spacer(Modifier.height(6.dp))
-                    Text("Entry: ${cfg.entryPrice?.let{"$"+it} ?: "—"}",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.bodyMedium)
-                    Text("Stop-loss: ${cfg.stopLoss?.let{"$"+it} ?: "—"}",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.bodyMedium)
-                    Text("Take-profit: ${cfg.takeProfit?.let{"$"+it} ?: "—"}",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.bodyMedium)
+            // Current summary
+            Text("CURRENT CONFIG", color = TextDim, style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.padding(top = 4.dp))
+            Card(shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = surface2)) {
+                Column(Modifier.fillMaxWidth().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SummaryRow("Entry", cfg.entryPrice?.let { "$" + it } ?: "Not set")
+                    SummaryRow("Stop-loss", cfg.stopLoss?.let { "$" + it } ?: "Not set")
+                    SummaryRow("Take-profit", cfg.takeProfit?.let { "$" + it } ?: "Not set")
                 }
             }
         }
@@ -162,19 +180,43 @@ fun SettingsScreen(viewModel: MainViewModel, onBack: () -> Unit) {
 }
 
 @Composable
+private fun SectionLabel(title: String, subtitle: String) {
+    Column {
+        Text(title, color = Gold, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold,
+            letterSpacing = 1.5.sp)
+        Spacer(Modifier.height(2.dp))
+        Text(subtitle, color = TextDim, style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+private fun SummaryRow(label: String, value: String) {
+    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+        Text(label, color = TextMid, style = MaterialTheme.typography.bodyMedium)
+        Text(value, color = TextHigh, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+    }
+}
+
+@Composable
 private fun MoneyField(label: String, value: String, onValueChange: (String) -> Unit) {
     OutlinedTextField(
         value = value,
-        onValueChange = { new ->
-            // Allow numbers and one decimal point only
-            if (new.isEmpty() || new.matches(Regex("^\\d*\\.?\\d*$"))) onValueChange(new)
-        },
-        label = { Text(label) },
+        onValueChange = { new -> if (new.isEmpty() || new.matches(Regex("^\\d*\\.?\\d*$"))) onValueChange(new) },
+        label = { Text(label, color = TextMid) },
+        prefix = { Text("$", color = Gold, style = TextStyle(fontWeight = FontWeight.Bold)) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        shape = RoundedCornerShape(12.dp),
-        textStyle = androidx.compose.ui.text.TextStyle(
-            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+        shape = RoundedCornerShape(14.dp),
+        textStyle = MaterialTheme.typography.titleMedium.copy(color = TextHigh, fontFamily = FontFamily.Monospace),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Gold,
+            unfocusedBorderColor = outline1,
+            focusedLabelColor = Gold,
+            cursorColor = Gold,
+            focusedContainerColor = surface1,
+            unfocusedContainerColor = surface1,
+            focusedPrefixColor = Gold,
+            unfocusedPrefixColor = Gold
         ),
         modifier = Modifier.fillMaxWidth()
     )
