@@ -153,26 +153,33 @@ private fun EngineHeader(status: com.titanium.trades.data.model.EngineStatus?, l
                     }
                 }
                 Spacer(Modifier.height(14.dp))
-                // equity big
+                // equity big + cash (flex columns so the caption can NEVER wrap)
                 Row(verticalAlignment = Alignment.Bottom) {
-                    Column(Modifier.weight(1f)) {
+                    Column(Modifier.weight(0.62f)) {
                         Text("EQUITY", color = TextDim, style = MaterialTheme.typography.labelSmall)
                         Text(
                             "$" + (status?.equityUsd?.let { f2(it) } ?: "—"),
                             color = TextHigh,
                             fontSize = 38.sp, fontWeight = FontWeight.Bold,
+                            maxLines = 1,
                             fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
                         )
                     }
-                    Column(horizontalAlignment = Alignment.End) {
+                    Column(
+                        Modifier.weight(0.38f),
+                        horizontalAlignment = Alignment.End
+                    ) {
                         Text("CASH", color = TextDim, style = MaterialTheme.typography.labelSmall)
                         Text("$" + (status?.cashUsd?.let { f2(it) } ?: "—"),
                             color = TextMid, style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1,
                             fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
                         Spacer(Modifier.height(6.dp))
                         status?.let {
                             Text("${it.symbolPrefix()} · cycle ${it.loopSeconds}s · updated ${shortAgo(it.updated)}",
-                                color = TextDim, style = MaterialTheme.typography.labelSmall)
+                                color = TextDim, style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                         }
                     }
                 }
